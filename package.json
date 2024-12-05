@@ -34,8 +34,11 @@
     "@mikro-orm/migrations": "5.9.7",
     "@mikro-orm/postgresql": "5.9.7",
     "awilix": "^8.0.1",
+    "cache-redis": "link:@medusajs/medusa/cache-redis",
+    "event-bus-redis": "link:@medusajs/medusa/event-bus-redis",
     "openpay": "^1.0.5",
     "pg": "^8.13.1",
+    "workflow-engine-redis": "link:@medusajs/medusa/workflow-engine-redis",
     "zod": "^3.23.8"
   },
   "devDependencies": {

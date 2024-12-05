@@ -31,17 +31,24 @@ module.exports = defineConfig({
         ],
       },
     },
-
     {
-      resolve: './src/modules/hello',
-    },
-    {
-      resolve: './src/modules/brand',
-    },
-    {
-      resolve: './src/modules/brand',
+      resolve: '@medusajs/medusa/cache-redis',
       options: {
-        apiKey: process.env.BRAND_API_KEY || 'temp',
+        redisUrl: process.env.REDIS_URL,
+      },
+    },
+    {
+      resolve: '@medusajs/medusa/event-bus-redis',
+      options: {
+        redisUrl: process.env.REDIS_URL,
+      },
+    },
+    {
+      resolve: '@medusajs/medusa/workflow-engine-redis',
+      options: {
+        redis: {
+          url: process.env.REDIS_URL,
+        },
       },
     },
   ],
