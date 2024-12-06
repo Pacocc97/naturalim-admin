@@ -44,15 +44,24 @@ importers:
       awilix:
         specifier: ^8.0.1
         version: 8.0.1
+      cache-redis:
+        specifier: link:@medusajs/medusa/cache-redis
+        version: link:@medusajs/medusa/cache-redis
       cors:
         specifier: ^2.8.5
         version: 2.8.5
+      event-bus-redis:
+        specifier: link:@medusajs/medusa/event-bus-redis
+        version: link:@medusajs/medusa/event-bus-redis
       openpay:
         specifier: ^1.0.5
         version: 1.0.5
       pg:
         specifier: ^8.13.1
         version: 8.13.1
+      workflow-engine-redis:
+        specifier: link:@medusajs/medusa/workflow-engine-redis
+        version: link:@medusajs/medusa/workflow-engine-redis
       zod:
         specifier: ^3.23.8
         version: 3.23.8
