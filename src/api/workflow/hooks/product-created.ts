@@ -4,9 +4,6 @@ import { Modules } from '@medusajs/framework/utils';
 
 createProductsWorkflow.hooks.productsCreated(
   async ({ products, additional_data }, { container }) => {
-    if (!additional_data?.brand) {
-      return;
-    }
 
     const productModuleService = container.resolve(Modules.PRODUCT);
 
@@ -15,7 +12,6 @@ createProductsWorkflow.hooks.productsCreated(
         ...product,
         metadata: {
           ...product.metadata,
-          brand: additional_data.brand,
         },
       })),
     );
@@ -26,9 +22,6 @@ createProductsWorkflow.hooks.productsCreated(
     });
   },
   async ({ products, additional_data }, { container }) => {
-    if (!additional_data.brand) {
-      return;
-    }
 
     const productModuleService = container.resolve(Modules.PRODUCT);
 

@@ -5,6 +5,8 @@ loadEnv(process.env.NODE_ENV || 'development', process.cwd());
 module.exports = defineConfig({
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
+    workerMode: process.env.MEDUSA_WORKER_MODE as "shared" | "worker" | "server" || 'server', 
+    redisUrl: process.env.REDIS_URL,
     http: {
       storeCors: process.env.STORE_CORS! || 'http://localhost:5000',
       adminCors: process.env.ADMIN_CORS! || 'http://localhost:5000',
@@ -50,6 +52,26 @@ module.exports = defineConfig({
           url: process.env.REDIS_URL,
         },
       },
+    },
+    {
+      resolve: '@medusajs/medusa/payment',
+      options: {
+        providers: [
+          {
+            resolve: './src/modules/openpay',
+            options: {
+              apiKey: 'sk_09565b022fd8461698de06e6bdc2a67a',
+              merchantId: 'mzf9mmojexntfllthzal',
+              production: false,
+              capture: true,
+            },
+          },
+        ],
+      },
+    },
+
+    {
+      resolve: './src/modules/hello',
     },
   ],
 });

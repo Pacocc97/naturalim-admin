@@ -122,13 +122,7 @@ class OpenpayProviderService extends AbstractPaymentProvider<Options> {
   getWebhookActionAndData(
     payload: ProviderWebhookPayload['payload'],
   ): Promise<WebhookActionResult> {
-    const { data, rawData, headers } = payload;
-
-    console.log(data, 'data');
-    console.log(rawData, 'rawData');
-    console.log(headers, 'headers');
-
-    // throw new Error('Method not implemented.');
+    throw new Error('Method not implemented.');
   }
 }
 

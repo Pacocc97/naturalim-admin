@@ -17,8 +17,7 @@ export default defineMiddlewares({
       matcher: '/admin/products',
       method: ['POST'],
       additionalDataValidator: {
-        brand_id: z.string().optional(),
-        brand: z.string().optional(),
+      
       },
     },
     {
