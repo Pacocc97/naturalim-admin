@@ -12,27 +12,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
-      - name: Use Node.js 20
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
           cache: 'pnpm'
 
-      - name: Install pnpm
-        run: corepack enable
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9 # Especifica la versión de pnpm que deseas usar
 
       - name: Install dependencies
         run: pnpm install
 
       - name: Build Medusa App
         run: pnpm build
+        # Esto generará el build productivo en `.medusa/server`
 
-      # Opcional: correr pruebas
+      # Opcional: Correr pruebas
       # - name: Run tests
       #   run: pnpm test
 
@@ -43,9 +41,11 @@ jobs:
 
       - name: Deploy to server
         run: |
+          # Sincroniza el código completo al servidor, excluyendo el directorio .git
           rsync -avz --delete \
             --exclude '.git' \
             -e "ssh -o StrictHostKeyChecking=no" \
             ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}
 
+          # Ejecuta el script de despliegue que hará la migración, build final, y arranque con pm2
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.DEPLOY_PATH }} && ./deploy.sh"
