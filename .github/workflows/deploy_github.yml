@@ -2,21 +2,20 @@ name: Deploy Medusa App
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ['main']
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3 # docs https://pnpm.io/continuous-integration#github-actions
+        uses: pnpm/action-setup@v3
         with:
-            version: 9  # Optional: specify a pnpm version
+          version: 9
 
       - name: Use Node.js 20
         uses: actions/setup-node@v3
@@ -32,13 +31,11 @@ jobs:
 
       - name: Build Medusa App
         run: pnpm build
-        # Esto generará el build productivo en `.medusa/server`
 
-      # Opcional: Corre pruebas si lo deseas
+      # Opcional: correr pruebas
       # - name: Run tests
       #   run: pnpm test
 
-      # Añadir la llave SSH
       - name: Add SSH key
         uses: webfactory/ssh-agent@v0.5.4
         with:
@@ -46,8 +43,9 @@ jobs:
 
       - name: Deploy to server
         run: |
-          # Sincroniza el código completo al servidor
-          rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}
+          rsync -avz --delete \
+            --exclude '.git' \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}
 
-          # Ejecuta el script de despliegue que hará la migración, build final, y arranque con pm2
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.DEPLOY_PATH }} && ./deploy.sh"
