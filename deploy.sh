@@ -8,7 +8,7 @@ cd "$(dirname "$0")"
 cd .medusa/server
 
 # Instalar dependencias con pnpm
-pnpm install --frozen-lockfile
+pnpm install
 
 # Ejecutar migraciones de la base de datos
 medusa db:migrate
