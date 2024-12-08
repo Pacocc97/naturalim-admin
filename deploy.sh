@@ -11,13 +11,13 @@ cd .medusa/server
 pnpm install
 
 # Ejecutar migraciones de la base de datos
-medusa db:migrate
+pnpm run predeploy
 
 # Construir la aplicación
-pnpm build
+# pnpm build
 
 # Reiniciar la aplicación con pm2
-pm2 restart medusa-app || pm2 start "pnpm start" --name "medusa-app"
+pm2 restart medusa-app || pm2 start "pnpm run start" --name "medusa-app"
 
 # Opcional: Verificar el estado de pm2
 pm2 status
