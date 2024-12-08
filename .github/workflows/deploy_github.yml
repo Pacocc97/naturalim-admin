@@ -9,43 +9,52 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout del repositorio
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # 2. Configurar Node.js 20 y cachear pnpm
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
           cache: 'pnpm'
 
+      # 3. Configurar pnpm usando la versión correcta del action
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 9 # Especifica la versión de pnpm que deseas usar
 
+      # 4. Verificar la instalación de pnpm
+      - name: Check pnpm version
+        run: pnpm --version
+
+      # 5. Instalar dependencias
       - name: Install dependencies
         run: pnpm install
 
+      # 6. Construir la aplicación Medusa
       - name: Build Medusa App
         run: pnpm build
         # Esto generará el build productivo en `.medusa/server`
 
-      # Opcional: Correr pruebas
+      # 7. Opcional: Correr pruebas
       # - name: Run tests
       #   run: pnpm test
 
+      # 8. Añadir la llave SSH
       - name: Add SSH key
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
+      # 9. Desplegar al servidor
       - name: Deploy to server
         run: |
-          # Sincroniza el código completo al servidor, excluyendo el directorio .git
           rsync -avz --delete \
             --exclude '.git' \
             -e "ssh -o StrictHostKeyChecking=no" \
             ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}
 
-          # Ejecuta el script de despliegue que hará la migración, build final, y arranque con pm2
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.DEPLOY_PATH }} && ./deploy.sh"
