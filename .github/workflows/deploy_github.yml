@@ -13,13 +13,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 3. Instalar pnpm globalmente con npm
+      # 2. Instalar pnpm globalmente con npm
       - name: Install pnpm globally
         run: |
           npm install -g pnpm
           pnpm --version
 
-      # 2. Configurar Node.js 20 (con cache de pnpm, opcional)
+      # 3. Configurar Node.js 20 (con cache de pnpm, opcional)
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
