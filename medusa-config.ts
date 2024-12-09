@@ -3,9 +3,24 @@ import { loadEnv, defineConfig } from '@medusajs/framework/utils';
 loadEnv(process.env.NODE_ENV || 'development', process.cwd());
 
 module.exports = defineConfig({
+  admin: {
+    vite: (config) => {
+      return {
+        ...config,
+        server: {
+          ...config.server,
+          hmr: {
+            port: 24678, // Set the port you want to use here
+          },
+        },
+      };
+    },
+  },
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
-    workerMode: process.env.MEDUSA_WORKER_MODE as "shared" | "worker" | "server" || 'server', 
+    workerMode:
+      (process.env.MEDUSA_WORKER_MODE as 'shared' | 'worker' | 'server') ||
+      'server',
     redisUrl: process.env.REDIS_URL,
     http: {
       storeCors: process.env.STORE_CORS! || 'http://localhost:5000',
