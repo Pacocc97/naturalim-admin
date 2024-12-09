@@ -3,19 +3,6 @@ import { loadEnv, defineConfig } from '@medusajs/framework/utils';
 loadEnv(process.env.NODE_ENV || 'development', process.cwd());
 
 module.exports = defineConfig({
-  admin: {
-    vite: (config) => {
-      return {
-        ...config,
-        server: {
-          ...config.server,
-          hmr: {
-            port: 9000, // Set the port you want to use here
-          },
-        },
-      };
-    },
-  },
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
     workerMode:
