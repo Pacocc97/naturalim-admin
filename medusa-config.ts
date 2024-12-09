@@ -10,7 +10,11 @@ module.exports = defineConfig({
         server: {
           ...config.server,
           hmr: {
-            port: 43581, // Set the port you want to use here
+            protocol: 'wss', // Usar WebSocket Secure
+            host: 'naturalim.adaflex.mx', // Tu dominio
+            port: 443, // Puerto SSL estándar
+            path: '/app/hmr', // Ruta personalizada para HMR
+            timeout: 30000, // Tiempo de espera opcional
           },
         },
       };
