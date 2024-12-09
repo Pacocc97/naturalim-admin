@@ -10,7 +10,7 @@ module.exports = defineConfig({
         server: {
           ...config.server,
           hmr: {
-            port: 443, // Set the port you want to use here
+            port: 9000, // Set the port you want to use here
           },
         },
       };
