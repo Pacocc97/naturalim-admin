@@ -19,8 +19,11 @@ pnpm run predeploy
 # (Opcional) Construir la aplicación si es necesario
 # pnpm build
 
-# Iniciar o reiniciar la aplicación con PM2
-pm2 start "pnpm run start" --name "naturalim-admin" --update-env || pm2 restart "naturalim-admin"
+# Eliminar procesos detenidos con el nombre 'naturalim-admin'
+pm2 delete naturalim-admin --silent || true
+
+# Reiniciar la aplicación existente o iniciar una nueva si no existe
+pm2 reload "naturalim-admin" || pm2 start "pnpm run start" --name "naturalim-admin" --update-env
 
 # Verificar el estado de PM2
 pm2 status
