@@ -9,7 +9,6 @@ module.exports = defineConfig({
         ...config,
         server: {
           ...config.server,
-          port: 5173,
           hmr: {
             protocol: 'wss', // Usar WebSocket Secure
             host: 'naturalim.adaflex.mx', // Tu dominio
