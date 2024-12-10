@@ -7,6 +7,7 @@ cd "$(dirname "$0")"
 # Navegar al directorio productivo
 cd .medusa/server
 
+# Eliminar node_modules para asegurar una instalación limpia
 rm -rf node_modules
 
 # Instalar dependencias con pnpm
@@ -15,13 +16,11 @@ pnpm install
 # Ejecutar migraciones de la base de datos
 pnpm run predeploy
 
-# Construir la aplicación
+# (Opcional) Construir la aplicación si es necesario
 # pnpm build
 
-# Reiniciar la aplicación con pm2
-pm2 start "pnpm run start" --name "naturalim-admin"
+# Iniciar o reiniciar la aplicación con PM2
+pm2 start "pnpm run start" --name "naturalim-admin" --update-env || pm2 restart "naturalim-admin"
 
-pm2 restart naturalim-admin
-
-# Opcional: Verificar el estado de pm2
+# Verificar el estado de PM2
 pm2 status
