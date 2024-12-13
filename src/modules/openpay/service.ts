@@ -1,4 +1,4 @@
-import { AbstractPaymentProvider } from '@medusajs/framework/utils';
+import { AbstractPaymentProvider, BigNumber } from '@medusajs/framework/utils';
 import { Logger } from '@medusajs/medusa';
 import {
   PaymentProviderError,
@@ -77,7 +77,7 @@ class OpenpayProviderService extends AbstractPaymentProvider<Options> {
       return {
         error: e,
         code: 'unknown',
-        detail: e,
+        detail: e.message || e,
       };
     }
     // throw new Error('Method not implemented.');
@@ -119,9 +119,50 @@ class OpenpayProviderService extends AbstractPaymentProvider<Options> {
   ): Promise<PaymentProviderError | PaymentProviderSessionResponse> {
     throw new Error('Method not implemented.');
   }
-  getWebhookActionAndData(
+  async getWebhookActionAndData(
     payload: ProviderWebhookPayload['payload'],
   ): Promise<WebhookActionResult> {
+    const { data, rawData } = payload as any;
+    // data será el contenido del evento de Openpay
+    console.log('data: ', data);
+    console.log('rawData: ', rawData);
+    try {
+      // Supongamos que el webhook viene con un campo "type" y un "transaction" con "order_id" y "amount".
+      const eventType = data.type;
+      const transaction = data.transaction; // según la forma real del webhook
+      switch (eventType) {
+        case 'charge.succeeded':
+          return {
+            action: 'captured',
+            data: {
+              session_id: transaction.order_id, // Debes haber guardado order_id en session
+              amount: transaction.amount, // Podrías necesitar BigNumber si lo requiere Medusa
+            },
+          };
+        case 'charge.created':
+          // Si llega este evento cuando se crea el cargo sin capturar
+          return {
+            action: 'authorized',
+            data: {
+              session_id: transaction.order_id,
+              amount: transaction.amount,
+            },
+          };
+        default:
+          return {
+            action: 'not_supported',
+          };
+      }
+    } catch (e) {
+      return {
+        action: 'failed',
+        data: {
+          session_id: (data.metadata as Record<string, any>).session_id,
+          amount: new BigNumber(data.amount as number),
+        },
+      };
+    }
+
     throw new Error('Method not implemented.');
   }
 }
