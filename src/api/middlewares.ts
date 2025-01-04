@@ -9,16 +9,15 @@ import {
 import { PostStoreCustomSchema } from './custom/validators';
 import { MedusaError, parseCorsOrigins } from '@medusajs/framework/utils';
 import { ConfigModule } from '@medusajs/framework';
-import cors from "cors"
+import cors from 'cors';
+import { raw } from 'body-parser';
 
 export default defineMiddlewares({
   routes: [
     {
       matcher: '/admin/products',
       method: ['POST'],
-      additionalDataValidator: {
-      
-      },
+      additionalDataValidator: {},
     },
     {
       matcher: '/custom/admin*',
@@ -29,32 +28,24 @@ export default defineMiddlewares({
       middlewares: [authenticate('customer', ['session', 'bearer'])],
     },
     {
-      matcher: "/custom*",
+      matcher: '/custom*',
       middlewares: [
-        (
-          req: MedusaRequest, 
-          res: MedusaResponse, 
-          next: MedusaNextFunction
-        ) => {
-          const configModule: ConfigModule =
-            req.scope.resolve("configModule")
+        (req: MedusaRequest, res: MedusaResponse, next: MedusaNextFunction) => {
+          const configModule: ConfigModule = req.scope.resolve('configModule');
 
           return cors({
-            origin: parseCorsOrigins(
-              configModule.projectConfig.http.storeCors
-            ),
+            origin: parseCorsOrigins(configModule.projectConfig.http.storeCors),
             credentials: true,
-          })(req, res, next)
+          })(req, res, next);
         },
       ],
     },
-    // {
-    //   matcher: "/custom",
-    //   method: "POST",
-    //   middlewares: [
-    //     validateAndTransformBody(PostStoreCustomSchema),
-    //   ]
-    // },
+    {
+      method: ['POST', 'PUT'],
+      matcher: '/webhooks/*',
+      bodyParser: false,
+      middlewares: [raw({ type: 'application/json' })],
+    },
   ],
   errorHandler: (
     error: MedusaError | any,

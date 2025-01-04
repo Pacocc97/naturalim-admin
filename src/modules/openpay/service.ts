@@ -9,7 +9,8 @@ import {
   ProviderWebhookPayload,
   WebhookActionResult,
 } from '@medusajs/framework/types';
-import { json } from 'stream/consumers';
+import Openpay from 'openpay';
+import { Transaction } from './types';
 
 type InjectedDependencies = {
   logger: Logger;
@@ -28,7 +29,7 @@ class OpenpayProviderService extends AbstractPaymentProvider<Options> {
   protected options_: Options;
 
   // Aquí puedes inicializar el cliente de Openpay
-  protected client: any;
+  protected client: Openpay;
 
   constructor({ logger }: InjectedDependencies, options: Options) {
     // @ts-ignore
@@ -46,11 +47,36 @@ class OpenpayProviderService extends AbstractPaymentProvider<Options> {
     );
   }
 
-  capturePayment(
-    paymentData: Record<string, unknown>,
-  ): Promise<PaymentProviderError | PaymentProviderSessionResponse['data']> {
-    throw new Error('Method not implemented.');
+  async initiatePayment(
+    context: CreatePaymentProviderSession,
+  ): Promise<PaymentProviderError | PaymentProviderSessionResponse> {
+    // Ejemplo de log al inicio
+    this.logger_.info('Iniciando initiatePayment en OpenpayProviderService');
+    console.log('context', context);
+    const { amount, currency_code, context: customerDetails } = context;
+    // Podrías querer loguear datos relevantes (sólo si no contienen info sensible)
+    this.logger_.debug(
+      `initiatePayment -> amount: ${amount}, currency: ${currency_code}`,
+    );
+    try {
+      // Aquí tu lógica...
+      // ...
+      this.logger_.info('initiatePayment completado exitosamente');
+      return {
+        data: {
+          ...context,
+        },
+      };
+    } catch (e) {
+      this.logger_.error(`initiatePayment falló: ${e.message}`);
+      return {
+        error: e,
+        code: 'unknown',
+        detail: e,
+      };
+    }
   }
+
   async authorizePayment(
     paymentSessionData: Record<string, unknown>,
     context: Record<string, unknown>,
@@ -61,47 +87,141 @@ class OpenpayProviderService extends AbstractPaymentProvider<Options> {
         data: PaymentProviderSessionResponse['data'];
       }
   > {
+    this.logger_.info('Iniciando authorizePayment en OpenpayProviderService');
     const externalId = paymentSessionData.id;
 
+    this.logger_.debug(
+      `authorizePayment -> externalId: ${externalId}, amount: ${context.amount}, currency_code: ${context.currency_code}`,
+    );
+
+    console.log('paymentSessionData', paymentSessionData);
+    console.log('context', context);
+
     try {
-      const paymentData = await this.client.authorizePayment(externalId);
-      console.log(paymentData, 'paymentData');
+      // Acceder correctamente a las propiedades de customer
+      const customer =
+        (context as any).customer || (context as any).user?.customer;
+
+      if (!customer) {
+        // Manejo de error si no se encuentra la información del cliente
+        this.logger_.error(
+          'Información del cliente no encontrada en el contexto.',
+        );
+        return {
+          error: 'missing_customer',
+          code: 'missing_customer',
+          detail: 'No se encontró la información del cliente en el contexto.',
+        };
+      }
+      const paymentData = await new Promise<Transaction>((resolve, reject) => {
+        this.client.charges.create(
+          {
+            source_id: paymentSessionData.context.source_id,
+            method: 'card',
+            amount: context.amount,
+            currency: context.currency_code,
+            description: context.description,
+            order_id: externalId,
+            device_session_id: paymentSessionData.context.device_session_id,
+            customer: {
+              name: customer.name,
+              last_name: customer.last_name,
+              email: customer.email,
+              phone_number: customer.phone_number,
+            },
+            capture: true,
+            use_3d_secure: true,
+            redirect_url: context.redirect_url + '&redirect_status=succeeded',
+          },
+          (error, charge: Transaction) => {
+            if (error) {
+              this.logger_.error(
+                `Error al autorizar el pago: ${error.description}`,
+              );
+              reject({
+                error,
+                code: error.error_code || 'payment_failed',
+                detail: error.description || 'Error al procesar el pago',
+              });
+            } else {
+              this.logger_.info(
+                `Pago autorizado correctamente: transactionId=${charge.id}`,
+              );
+              resolve(charge);
+            }
+          },
+        );
+      });
+
+      this.logger_.info(
+        `authorizePayment completado, paymentData=${paymentData.id}`,
+      );
       return {
         data: {
           ...paymentData,
           id: externalId,
+          transaction_id: paymentData.id,
         },
         status: 'authorized',
       };
-    } catch (e) {
+    } catch (error) {
+      this.logger_.error(
+        `authorizePayment falló: ${error.detail || error.message}`,
+      );
       return {
-        error: e,
-        code: 'unknown',
-        detail: e.message || e,
+        error,
+        code: error.code || 'unknown',
+        detail: error.detail || error.message || 'Error al procesar el pago',
       };
     }
-    // throw new Error('Method not implemented.');
   }
+
+  async capturePayment(
+    paymentData: Record<string, unknown>,
+  ): Promise<PaymentProviderError | PaymentProviderSessionResponse['data']> {
+    try {
+      const { payment_id } = paymentData;
+    } catch (error) {
+      return {};
+      return {
+        error,
+        code: error.code || 'unknown',
+        detail: error.detail || error.message || 'Error al confirmar el cargo',
+      };
+    }
+  }
+
   cancelPayment(
     paymentData: Record<string, unknown>,
   ): Promise<PaymentProviderError | PaymentProviderSessionResponse['data']> {
     //return paymentData;
     throw new Error('Method not implemented.');
   }
-  initiatePayment(
-    context: CreatePaymentProviderSession,
-  ): Promise<PaymentProviderError | PaymentProviderSessionResponse> {
-    throw new Error('Method not implemented.');
-  }
-  deletePayment(
+
+  async deletePayment(
     paymentSessionData: Record<string, unknown>,
   ): Promise<PaymentProviderError | PaymentProviderSessionResponse['data']> {
-    throw new Error('Method not implemented.');
+    const externalId = paymentSessionData.id;
+
+    try {
+      // assuming you have a client that cancels the payment
+      await externalId;
+    } catch (e) {
+      return {
+        error: e,
+        code: 'unknown',
+        detail: e,
+      };
+    }
   }
-  getPaymentStatus(
+
+  async getPaymentStatus(
     paymentSessionData: Record<string, unknown>,
   ): Promise<PaymentSessionStatus> {
-    throw new Error('Method not implemented.');
+    const externalId = paymentSessionData.id;
+    console.log('paymentSessionData', paymentSessionData);
+    return 'authorized';
+    // throw new Error('Method not implemented.');
   }
   refundPayment(
     paymentData: Record<string, unknown>,
@@ -114,38 +234,53 @@ class OpenpayProviderService extends AbstractPaymentProvider<Options> {
   ): Promise<PaymentProviderError | PaymentProviderSessionResponse['data']> {
     throw new Error('Method not implemented.');
   }
-  updatePayment(
+  async updatePayment(
     context: UpdatePaymentProviderSession,
   ): Promise<PaymentProviderError | PaymentProviderSessionResponse> {
-    throw new Error('Method not implemented.');
+    try {
+      // `paymentSessionData` es lo que ya tienes guardado
+      const paymentSessionData = context.paymentSessionData || {};
+
+      // Aquí obtienes los nuevos datos (ej. el token)
+      const cardToken = context?.context?.card_token;
+
+      // Retornas tu nueva data, mezclada con la anterior
+      return {
+        data: {
+          ...paymentSessionData,
+          card_token: cardToken,
+        },
+      };
+    } catch (e) {
+      return {
+        error: e,
+        code: 'unknown',
+        detail: e,
+      };
+    }
   }
+
   async getWebhookActionAndData(
     payload: ProviderWebhookPayload['payload'],
   ): Promise<WebhookActionResult> {
-    const { data, rawData } = payload as any;
-    // data será el contenido del evento de Openpay
-    console.log('data: ', data);
-    console.log('rawData: ', rawData);
+    const { data, rawData, headers } = payload;
+
     try {
-      // Supongamos que el webhook viene con un campo "type" y un "transaction" con "order_id" y "amount".
-      const eventType = data.type;
-      const transaction = data.transaction; // según la forma real del webhook
-      switch (eventType) {
-        case 'charge.succeeded':
-          return {
-            action: 'captured',
-            data: {
-              session_id: transaction.order_id, // Debes haber guardado order_id en session
-              amount: transaction.amount, // Podrías necesitar BigNumber si lo requiere Medusa
-            },
-          };
-        case 'charge.created':
-          // Si llega este evento cuando se crea el cargo sin capturar
+      switch (data.event_type) {
+        case 'authorized_amount':
           return {
             action: 'authorized',
             data: {
-              session_id: transaction.order_id,
-              amount: transaction.amount,
+              session_id: (data.metadata as Record<string, any>).session_id,
+              amount: new BigNumber(data.amount as number),
+            },
+          };
+        case 'success':
+          return {
+            action: 'captured',
+            data: {
+              session_id: (data.metadata as Record<string, any>).session_id,
+              amount: new BigNumber(data.amount as number),
             },
           };
         default:
@@ -162,8 +297,6 @@ class OpenpayProviderService extends AbstractPaymentProvider<Options> {
         },
       };
     }
-
-    throw new Error('Method not implemented.');
   }
 }
 
