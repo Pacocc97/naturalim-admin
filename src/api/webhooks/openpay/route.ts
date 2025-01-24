@@ -27,6 +27,17 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       },
     });
 
+    if (action === 'captured') {
+      // Aquí, en data probablemente tengas el session_id
+      // entonces obtienes la sesión o el payment:
+      const session = await openpayProvider.retrievePaymentSession(
+        data.session_id,
+      );
+
+      // y ahora llamas al capturePayment con session.payment.id
+      await openpayProvider.capturePayment({ payment_id: session.payment.id });
+    }
+
     // // Aquí podrías hacer cualquier proceso extra que necesites
     console.log('action:', action);
     console.log('data:', data);

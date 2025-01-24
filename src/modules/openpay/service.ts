@@ -181,8 +181,8 @@ class OpenpayProviderService extends AbstractPaymentProvider<Options> {
   ): Promise<PaymentProviderError | PaymentProviderSessionResponse['data']> {
     try {
       const { payment_id } = paymentData;
+      return { ...paymentData };
     } catch (error) {
-      return {};
       return {
         error,
         code: error.code || 'unknown',

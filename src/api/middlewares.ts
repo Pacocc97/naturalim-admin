@@ -43,7 +43,7 @@ export default defineMiddlewares({
     {
       method: ['POST', 'PUT'],
       matcher: '/webhooks/*',
-      bodyParser: false,
+      bodyParser: { preserveRawBody: true },
       middlewares: [raw({ type: 'application/json' })],
     },
   ],

@@ -13,11 +13,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
     // Usamos el método getWebhookActionAndData para parsear el payload
     const openpayProvider = req.scope.resolve(Modules.PAYMENT);
-    const session = await openpayProvider.retrievePaymentSession(
-      (parsedBody.metadata as Record<string, any>).session_id,
-    );
 
-    console.log('session', session);
     const { action, data } = await openpayProvider.getWebhookActionAndData({
       provider: 'openpay_openpay',
       payload: {
@@ -28,8 +24,8 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     });
 
     // // Aquí podrías hacer cualquier proceso extra que necesites
-    console.log('action:', action);
-    console.log('data:', data);
+    // console.log('action:', action);
+    // console.log('data:', data);
 
     // Al final, respondes con lo que quieres
     return res.json({ status: 'OK' });

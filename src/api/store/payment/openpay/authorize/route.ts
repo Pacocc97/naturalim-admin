@@ -51,10 +51,7 @@ export async function POST(
     );
 
     // Registrar la sesión de pago autorizada
-    console.log(
-      'Sesión de pago autorizada:',
-      paymentSession.data.payment_method.url,
-    );
+    console.log('Sesión de pago autorizada:', paymentSession);
 
     // Responder al cliente con la sesión de pago
     res.json({
