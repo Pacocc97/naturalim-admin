@@ -36,6 +36,7 @@ module.exports = defineConfig({
       jwtExpiresIn: '4h',
     },
   },
+  plugins: [],
   modules: [
     {
       resolve: '@medusajs/medusa/payment',
@@ -75,9 +76,6 @@ module.exports = defineConfig({
     //   },
     // },
 
-    {
-      resolve: './src/modules/hello',
-    },
     {
       resolve: '@medusajs/medusa/file',
       options: {

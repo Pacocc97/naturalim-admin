@@ -55,7 +55,8 @@ export async function POST(
 
     // Responder al cliente con la sesión de pago
     res.json({
-      redirect_url: paymentSession.data.payment_method.url,
+      redirect_url: (paymentSession.data.payment_method as { url: string }).url,
+      // redirect_url: paymentSession.data.payment_method.url,
     });
   } catch (error: any) {
     // Registrar el error completo en el servidor para facilitar la depuración

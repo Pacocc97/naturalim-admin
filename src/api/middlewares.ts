@@ -6,7 +6,6 @@ import {
   type MedusaRequest,
   type MedusaResponse,
 } from '@medusajs/framework/http';
-import { PostStoreCustomSchema } from './custom/validators';
 import { MedusaError, parseCorsOrigins } from '@medusajs/framework/utils';
 import { ConfigModule } from '@medusajs/framework';
 import cors from 'cors';
