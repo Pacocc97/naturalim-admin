@@ -1,15 +1,35 @@
-import { AbstractPaymentProvider, BigNumber } from '@medusajs/framework/utils';
-import { Logger } from '@medusajs/medusa';
 import {
-  PaymentProviderError,
-  PaymentProviderSessionResponse,
+  AbstractPaymentProvider,
+  BigNumber,
+  MedusaError,
+} from '@medusajs/framework/utils';
+import {
+  AuthorizePaymentInput,
+  AuthorizePaymentOutput,
+  CapturePaymentInput,
+  CapturePaymentOutput,
+  InitiatePaymentInput,
+  InitiatePaymentOutput,
+  RefundPaymentInput,
+  PaymentProviderOutput,
+  Logger,
+  PaymentProviderInput,
+  CancelPaymentInput,
+  CancelPaymentOutput,
+  DeletePaymentInput,
+  DeletePaymentOutput,
+  RetrievePaymentInput,
+  RetrievePaymentOutput,
+  UpdatePaymentInput,
+  UpdatePaymentOutput,
+} from '@medusajs/framework/types';
+import {
   PaymentSessionStatus,
-  CreatePaymentProviderSession,
-  UpdatePaymentProviderSession,
   ProviderWebhookPayload,
   WebhookActionResult,
 } from '@medusajs/framework/types';
-import { json } from 'stream/consumers';
+import Openpay from 'openpay';
+import { Transaction } from './types';
 
 type InjectedDependencies = {
   logger: Logger;
@@ -27,8 +47,7 @@ class OpenpayProviderService extends AbstractPaymentProvider<Options> {
   protected logger_: Logger;
   protected options_: Options;
 
-  // Aquí puedes inicializar el cliente de Openpay
-  protected client: any;
+  protected client: Openpay;
 
   constructor({ logger }: InjectedDependencies, options: Options) {
     // @ts-ignore
@@ -46,106 +65,192 @@ class OpenpayProviderService extends AbstractPaymentProvider<Options> {
     );
   }
 
-  capturePayment(
-    paymentData: Record<string, unknown>,
-  ): Promise<PaymentProviderError | PaymentProviderSessionResponse['data']> {
+  async initiatePayment(
+    input: InitiatePaymentInput,
+  ): Promise<InitiatePaymentOutput> {
     throw new Error('Method not implemented.');
   }
-  async authorizePayment(
-    paymentSessionData: Record<string, unknown>,
-    context: Record<string, unknown>,
-  ): Promise<
-    | PaymentProviderError
-    | {
-        status: PaymentSessionStatus;
-        data: PaymentProviderSessionResponse['data'];
-      }
-  > {
-    const externalId = paymentSessionData.id;
 
-    try {
-      const paymentData = await this.client.authorizePayment(externalId);
-      console.log(paymentData, 'paymentData');
-      return {
-        data: {
-          ...paymentData,
-          id: externalId,
-        },
-        status: 'authorized',
-      };
-    } catch (e) {
-      return {
-        error: e,
-        code: 'unknown',
-        detail: e.message || e,
-      };
-    }
-    // throw new Error('Method not implemented.');
+  // async authorizePayment(
+  //   input: AuthorizePaymentInput,
+  // ): Promise<AuthorizePaymentOutput> {
+  //   console.log('INPUT: ', input);
+  //   const { context } = input;
+  //   this.logger_.info('Iniciando authorizePayment en OpenpayProviderService');
+  //   const externalId = paymentSessionData.id;
+
+  //   this.logger_.debug(
+  //     `authorizePayment -> externalId: ${externalId}, amount: ${context.amount}, currency_code: ${context.currency_code}`,
+  //   );
+
+  //   console.log('context', context);
+
+  //   try {
+  //     // Acceder correctamente a las propiedades de customer
+  //     const customer =
+  //       (context as any).customer || (context as any).user?.customer;
+
+  //     if (!customer) {
+  //       // Manejo de error si no se encuentra la información del cliente
+  //       this.logger_.error(
+  //         'Información del cliente no encontrada en el contexto.',
+  //       );
+  //       return {
+  //         error: 'missing_customer',
+  //         code: 'missing_customer',
+  //         detail: 'No se encontró la información del cliente en el contexto.',
+  //       };
+  //     }
+  //     const paymentData = await new Promise<Transaction>((resolve, reject) => {
+  //       this.client.charges.create(
+  //         {
+  //           source_id: paymentSessionData.context.source_id,
+  //           method: 'card',
+  //           amount: context.amount,
+  //           currency: context.currency_code,
+  //           description: context.description,
+  //           order_id: externalId,
+  //           device_session_id: paymentSessionData.context.device_session_id,
+  //           customer: {
+  //             name: customer.name,
+  //             last_name: customer.last_name,
+  //             email: customer.email,
+  //             phone_number: customer.phone_number,
+  //           },
+  //           capture: true,
+  //           use_3d_secure: true,
+  //           redirect_url: context.redirect_url + '&redirect_status=succeeded',
+  //         },
+  //         (error, charge: Transaction) => {
+  //           if (error) {
+  //             this.logger_.error(
+  //               `Error al autorizar el pago: ${error.description}`,
+  //             );
+  //             reject({
+  //               error,
+  //               code: error.error_code || 'payment_failed',
+  //               detail: error.description || 'Error al procesar el pago',
+  //             });
+  //           } else {
+  //             this.logger_.info(
+  //               `Pago autorizado correctamente: transactionId=${charge.id}`,
+  //             );
+  //             resolve(charge);
+  //           }
+  //         },
+  //       );
+  //     });
+
+  //     this.logger_.info(
+  //       `authorizePayment completado, paymentData=${paymentData.id}`,
+  //     );
+  //     return {
+  //       data: {
+  //         ...paymentData,
+  //         id: externalId,
+  //         transaction_id: paymentData.id,
+  //       },
+  //       status: 'authorized',
+  //     };
+  //   } catch (error) {
+  //     this.logger_.error(
+  //       `authorizePayment falló: ${error.detail || error.message}`,
+  //     );
+  //     return {
+  //       error,
+  //       code: error.code || 'unknown',
+  //       detail: error.detail || error.message || 'Error al procesar el pago',
+  //     };
+  //   }
+  // }
+
+  async authorizePayment(
+    input: AuthorizePaymentInput,
+  ): Promise<AuthorizePaymentOutput> {
+    throw new Error('Method not implemented.');
   }
-  cancelPayment(
-    paymentData: Record<string, unknown>,
-  ): Promise<PaymentProviderError | PaymentProviderSessionResponse['data']> {
+
+  async capturePayment(
+    input: CapturePaymentInput,
+  ): Promise<CapturePaymentOutput> {
+    const externalId = input.data?.id;
+    try {
+      return { data: input };
+    } catch (error) {
+      // Si se dispone de un logger, registra el error para facilitar su diagnóstico
+      if (this.logger_) {
+        this.logger_.error('Error al capturar el pago', error);
+      }
+
+      // Si el error ya es un MedusaError, re-lánzalo directamente
+      if (error instanceof MedusaError) {
+        throw error;
+      }
+
+      // Envolver errores desconocidos en un MedusaError con un tipo y código específico
+      throw new MedusaError(
+        MedusaError.Types.PAYMENT_AUTHORIZATION_ERROR, // Tipo de error adecuado para fallos en el flujo de pago
+        `Error al capturar el pago con ID externo ${externalId}: ${
+          error instanceof Error ? error.message : 'Error desconocido'
+        }`,
+        'payment_capture_error', // Código de error personalizado (opcional)
+      );
+    }
+  }
+
+  async cancelPayment(input: CancelPaymentInput): Promise<CancelPaymentOutput> {
     //return paymentData;
     throw new Error('Method not implemented.');
   }
-  initiatePayment(
-    context: CreatePaymentProviderSession,
-  ): Promise<PaymentProviderError | PaymentProviderSessionResponse> {
+
+  async deletePayment(input: DeletePaymentInput): Promise<DeletePaymentOutput> {
     throw new Error('Method not implemented.');
   }
-  deletePayment(
-    paymentSessionData: Record<string, unknown>,
-  ): Promise<PaymentProviderError | PaymentProviderSessionResponse['data']> {
+
+  async getPaymentStatus(
+    input: PaymentProviderInput,
+  ): Promise<{ status: PaymentSessionStatus }> {
+    const externalId = input.data?.id;
+    console.log('paymentData', input);
+    return { status: 'authorized' };
+  }
+
+  async refundPayment(
+    input: RefundPaymentInput,
+  ): Promise<PaymentProviderOutput> {
     throw new Error('Method not implemented.');
   }
-  getPaymentStatus(
-    paymentSessionData: Record<string, unknown>,
-  ): Promise<PaymentSessionStatus> {
+
+  async retrievePayment(
+    input: RetrievePaymentInput,
+  ): Promise<RetrievePaymentOutput> {
     throw new Error('Method not implemented.');
   }
-  refundPayment(
-    paymentData: Record<string, unknown>,
-    refundAmount: number,
-  ): Promise<PaymentProviderError | PaymentProviderSessionResponse['data']> {
+  async updatePayment(input: UpdatePaymentInput): Promise<UpdatePaymentOutput> {
     throw new Error('Method not implemented.');
   }
-  retrievePayment(
-    paymentSessionData: Record<string, unknown>,
-  ): Promise<PaymentProviderError | PaymentProviderSessionResponse['data']> {
-    throw new Error('Method not implemented.');
-  }
-  updatePayment(
-    context: UpdatePaymentProviderSession,
-  ): Promise<PaymentProviderError | PaymentProviderSessionResponse> {
-    throw new Error('Method not implemented.');
-  }
+
   async getWebhookActionAndData(
     payload: ProviderWebhookPayload['payload'],
   ): Promise<WebhookActionResult> {
-    const { data, rawData } = payload as any;
-    // data será el contenido del evento de Openpay
-    console.log('data: ', data);
-    console.log('rawData: ', rawData);
+    const { data, rawData, headers } = payload;
+
     try {
-      // Supongamos que el webhook viene con un campo "type" y un "transaction" con "order_id" y "amount".
-      const eventType = data.type;
-      const transaction = data.transaction; // según la forma real del webhook
-      switch (eventType) {
-        case 'charge.succeeded':
-          return {
-            action: 'captured',
-            data: {
-              session_id: transaction.order_id, // Debes haber guardado order_id en session
-              amount: transaction.amount, // Podrías necesitar BigNumber si lo requiere Medusa
-            },
-          };
-        case 'charge.created':
-          // Si llega este evento cuando se crea el cargo sin capturar
+      switch (data.event_type) {
+        case 'authorized_amount':
           return {
             action: 'authorized',
             data: {
-              session_id: transaction.order_id,
-              amount: transaction.amount,
+              session_id: (data.metadata as Record<string, any>).session_id,
+              amount: new BigNumber(data.amount as number),
+            },
+          };
+        case 'success':
+          return {
+            action: 'captured',
+            data: {
+              session_id: (data.metadata as Record<string, any>).session_id,
+              amount: new BigNumber(data.amount as number),
             },
           };
         default:
@@ -162,8 +267,6 @@ class OpenpayProviderService extends AbstractPaymentProvider<Options> {
         },
       };
     }
-
-    throw new Error('Method not implemented.');
   }
 }
 
