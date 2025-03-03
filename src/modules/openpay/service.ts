@@ -30,6 +30,10 @@ import {
 } from '@medusajs/framework/types';
 import Openpay from 'openpay';
 import { Transaction } from './types';
+import {
+  PaymentAccountHolderDTO,
+  PaymentCustomerDTO,
+} from '@medusajs/framework/types';
 
 type InjectedDependencies = {
   logger: Logger;
@@ -39,6 +43,17 @@ type Options = {
   apiKey: string;
   merchantId: string;
   production: boolean;
+};
+
+export type PaymentProviderContext = {
+  account_holder?: PaymentAccountHolderDTO;
+  customer?: PaymentCustomerDTO;
+  source_id: string;
+  amount: number;
+  currency_code: string;
+  description: string;
+  device_session_id: string;
+  redirect_url: string;
 };
 
 class OpenpayProviderService extends AbstractPaymentProvider<Options> {
@@ -86,24 +101,14 @@ class OpenpayProviderService extends AbstractPaymentProvider<Options> {
   async authorizePayment(
     input: AuthorizePaymentInput,
   ): Promise<AuthorizePaymentOutput> {
-    console.log('INPUT: ', input);
-    const { context } = input;
+    const context = input.context as PaymentProviderContext;
     this.logger_.info('Iniciando authorizePayment en OpenpayProviderService');
-    // const externalId = paymentSessionData.id;
-
-    // this.logger_.debug(
-    //   `authorizePayment -> externalId: ${externalId}, amount: ${context.amount}, currency_code: ${context.currency_code}`,
-    // );
-
     console.log('context', context);
 
     try {
-      // Acceder correctamente a las propiedades de customer
-      const customer =
-        (context as any).customer || (context as any).user?.customer;
-
+      // Accedemos a la información del cliente directamente desde el context
+      const customer = context.customer ?? (context as any).user?.customer;
       if (!customer) {
-        // Manejo de error si no se encuentra la información del cliente
         this.logger_.error(
           'Información del cliente no encontrada en el contexto.',
         );
@@ -112,6 +117,7 @@ class OpenpayProviderService extends AbstractPaymentProvider<Options> {
           'No se encontró la información del cliente en el contexto.',
         );
       }
+
       const paymentData = await new Promise<Transaction>((resolve, reject) => {
         this.client.charges.create(
           {
@@ -158,7 +164,6 @@ class OpenpayProviderService extends AbstractPaymentProvider<Options> {
       return {
         data: {
           ...paymentData,
-          // id: externalId,
           transaction_id: paymentData.id,
         },
         status: 'authorized',
@@ -168,9 +173,12 @@ class OpenpayProviderService extends AbstractPaymentProvider<Options> {
         `authorizePayment falló: ${error.detail || error.message}`,
       );
       return {
-        error,
-        code: error.code || 'unknown',
-        detail: error.detail || error.message || 'Error al procesar el pago',
+        status: 'error',
+        data: {
+          error,
+          code: error.code || 'unknown',
+          detail: error.detail || error.message || 'Error al procesar el pago',
+        },
       };
     }
   }
