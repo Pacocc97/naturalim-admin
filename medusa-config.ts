@@ -3,24 +3,24 @@ import { loadEnv, defineConfig } from '@medusajs/framework/utils';
 loadEnv(process.env.NODE_ENV || 'development', process.cwd());
 
 module.exports = defineConfig({
-  // admin: {
-  //   vite: (config) => {
-  //     return {
-  //       ...config,
-  //       server: {
-  //         ...config.server,
-  //         hmr: {
-  //           protocol: 'wss', // Usar WebSocket Secure
-  //           // host: 'naturalim.adaflex.mx', // Tu dominio
-  //           port: 43581, // Puerto SSL estándar para el cliente
-  //           path: '/vite/hmr', // Ruta personalizada para HMR
-  //           timeout: 30000, // Tiempo de espera opcional
-  //           clientPort: 443, // Puerto que el cliente usará para conectarse
-  //         },
-  //       },
-  //     };
-  //   },
-  // },
+  admin: {
+    vite: (config) => {
+      return {
+        ...config,
+        server: {
+          ...config.server,
+          hmr: {
+            protocol: 'wss', // Usar WebSocket Secure
+            // host: 'naturalim.adaflex.mx', // Tu dominio
+            port: 43581, // Puerto SSL estándar para el cliente
+            path: '/vite/hmr', // Ruta personalizada para HMR
+            timeout: 30000, // Tiempo de espera opcional
+            clientPort: 443, // Puerto que el cliente usará para conectarse
+          },
+        },
+      };
+    },
+  },
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
     workerMode:
