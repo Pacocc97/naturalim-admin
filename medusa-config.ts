@@ -36,7 +36,6 @@ module.exports = defineConfig({
       jwtExpiresIn: '4h',
     },
   },
-  plugins: [],
   modules: [
     {
       resolve: '@medusajs/medusa/payment',
@@ -75,7 +74,26 @@ module.exports = defineConfig({
         },
       },
     },
+    {
+      resolve: '@medusajs/medusa/payment',
+      options: {
+        providers: [
+          {
+            resolve: './src/modules/openpay',
+            options: {
+              apiKey: 'sk_09565b022fd8461698de06e6bdc2a67a',
+              merchantId: 'mzf9mmojexntfllthzal',
+              production: false,
+              capture: true,
+            },
+          },
+        ],
+      },
+    },
 
+    {
+      resolve: './src/modules/hello',
+    },
     {
       resolve: '@medusajs/medusa/file',
       options: {
