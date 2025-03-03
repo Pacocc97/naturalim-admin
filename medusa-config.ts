@@ -90,10 +90,6 @@ module.exports = defineConfig({
         ],
       },
     },
-
-    {
-      resolve: './src/modules/hello',
-    },
     {
       resolve: '@medusajs/medusa/file',
       options: {
