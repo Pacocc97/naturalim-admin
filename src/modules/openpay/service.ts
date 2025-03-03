@@ -68,106 +68,111 @@ class OpenpayProviderService extends AbstractPaymentProvider<Options> {
   async initiatePayment(
     input: InitiatePaymentInput,
   ): Promise<InitiatePaymentOutput> {
-    throw new Error('Method not implemented.');
+    function generateRandomId() {
+      return '_' + Math.random().toString(36).substr(2, 9);
+    }
+    // Simulamos la respuesta, ya que no se necesita iniciar sesión de pago en Openpay
+    const response = {
+      id: generateRandomId(),
+      // puedes incluir otros datos relevantes que necesites almacenar
+    };
+
+    return {
+      id: response.id,
+      data: response,
+    };
   }
-
-  // async authorizePayment(
-  //   input: AuthorizePaymentInput,
-  // ): Promise<AuthorizePaymentOutput> {
-  //   console.log('INPUT: ', input);
-  //   const { context } = input;
-  //   this.logger_.info('Iniciando authorizePayment en OpenpayProviderService');
-  //   const externalId = paymentSessionData.id;
-
-  //   this.logger_.debug(
-  //     `authorizePayment -> externalId: ${externalId}, amount: ${context.amount}, currency_code: ${context.currency_code}`,
-  //   );
-
-  //   console.log('context', context);
-
-  //   try {
-  //     // Acceder correctamente a las propiedades de customer
-  //     const customer =
-  //       (context as any).customer || (context as any).user?.customer;
-
-  //     if (!customer) {
-  //       // Manejo de error si no se encuentra la información del cliente
-  //       this.logger_.error(
-  //         'Información del cliente no encontrada en el contexto.',
-  //       );
-  //       return {
-  //         error: 'missing_customer',
-  //         code: 'missing_customer',
-  //         detail: 'No se encontró la información del cliente en el contexto.',
-  //       };
-  //     }
-  //     const paymentData = await new Promise<Transaction>((resolve, reject) => {
-  //       this.client.charges.create(
-  //         {
-  //           source_id: paymentSessionData.context.source_id,
-  //           method: 'card',
-  //           amount: context.amount,
-  //           currency: context.currency_code,
-  //           description: context.description,
-  //           order_id: externalId,
-  //           device_session_id: paymentSessionData.context.device_session_id,
-  //           customer: {
-  //             name: customer.name,
-  //             last_name: customer.last_name,
-  //             email: customer.email,
-  //             phone_number: customer.phone_number,
-  //           },
-  //           capture: true,
-  //           use_3d_secure: true,
-  //           redirect_url: context.redirect_url + '&redirect_status=succeeded',
-  //         },
-  //         (error, charge: Transaction) => {
-  //           if (error) {
-  //             this.logger_.error(
-  //               `Error al autorizar el pago: ${error.description}`,
-  //             );
-  //             reject({
-  //               error,
-  //               code: error.error_code || 'payment_failed',
-  //               detail: error.description || 'Error al procesar el pago',
-  //             });
-  //           } else {
-  //             this.logger_.info(
-  //               `Pago autorizado correctamente: transactionId=${charge.id}`,
-  //             );
-  //             resolve(charge);
-  //           }
-  //         },
-  //       );
-  //     });
-
-  //     this.logger_.info(
-  //       `authorizePayment completado, paymentData=${paymentData.id}`,
-  //     );
-  //     return {
-  //       data: {
-  //         ...paymentData,
-  //         id: externalId,
-  //         transaction_id: paymentData.id,
-  //       },
-  //       status: 'authorized',
-  //     };
-  //   } catch (error) {
-  //     this.logger_.error(
-  //       `authorizePayment falló: ${error.detail || error.message}`,
-  //     );
-  //     return {
-  //       error,
-  //       code: error.code || 'unknown',
-  //       detail: error.detail || error.message || 'Error al procesar el pago',
-  //     };
-  //   }
-  // }
 
   async authorizePayment(
     input: AuthorizePaymentInput,
   ): Promise<AuthorizePaymentOutput> {
-    throw new Error('Method not implemented.');
+    console.log('INPUT: ', input);
+    const { context } = input;
+    this.logger_.info('Iniciando authorizePayment en OpenpayProviderService');
+    // const externalId = paymentSessionData.id;
+
+    // this.logger_.debug(
+    //   `authorizePayment -> externalId: ${externalId}, amount: ${context.amount}, currency_code: ${context.currency_code}`,
+    // );
+
+    console.log('context', context);
+
+    try {
+      // Acceder correctamente a las propiedades de customer
+      const customer =
+        (context as any).customer || (context as any).user?.customer;
+
+      if (!customer) {
+        // Manejo de error si no se encuentra la información del cliente
+        this.logger_.error(
+          'Información del cliente no encontrada en el contexto.',
+        );
+        throw new MedusaError(
+          MedusaError.Types.INVALID_DATA,
+          'No se encontró la información del cliente en el contexto.',
+        );
+      }
+      const paymentData = await new Promise<Transaction>((resolve, reject) => {
+        this.client.charges.create(
+          {
+            source_id: context.source_id,
+            method: 'card',
+            amount: context.amount,
+            currency: context.currency_code,
+            description: context.description,
+            order_id: input.data.id,
+            device_session_id: context.device_session_id,
+            customer: {
+              name: customer.name,
+              last_name: customer.last_name,
+              email: customer.email,
+              phone_number: customer.phone_number,
+            },
+            capture: true,
+            use_3d_secure: true,
+            redirect_url: context.redirect_url + '&redirect_status=succeeded',
+          },
+          (error, charge: Transaction) => {
+            if (error) {
+              this.logger_.error(
+                `Error al autorizar el pago: ${error.description}`,
+              );
+              reject({
+                error,
+                code: error.error_code || 'payment_failed',
+                detail: error.description || 'Error al procesar el pago',
+              });
+            } else {
+              this.logger_.info(
+                `Pago autorizado correctamente: transactionId=${charge.id}`,
+              );
+              resolve(charge);
+            }
+          },
+        );
+      });
+
+      this.logger_.info(
+        `authorizePayment completado, paymentData=${paymentData.id}`,
+      );
+      return {
+        data: {
+          ...paymentData,
+          // id: externalId,
+          transaction_id: paymentData.id,
+        },
+        status: 'authorized',
+      };
+    } catch (error) {
+      this.logger_.error(
+        `authorizePayment falló: ${error.detail || error.message}`,
+      );
+      return {
+        error,
+        code: error.code || 'unknown',
+        detail: error.detail || error.message || 'Error al procesar el pago',
+      };
+    }
   }
 
   async capturePayment(
@@ -204,7 +209,12 @@ class OpenpayProviderService extends AbstractPaymentProvider<Options> {
   }
 
   async deletePayment(input: DeletePaymentInput): Promise<DeletePaymentOutput> {
-    throw new Error('Method not implemented.');
+    const externalId = input.data?.id;
+    this.logger_.info(
+      `deletePayment called for externalId: ${externalId} (mockup)`,
+    );
+    // Como OpenPay no soporta la cancelación de pagos, simplemente retornamos un objeto vacío.
+    return {};
   }
 
   async getPaymentStatus(
