@@ -36,7 +36,7 @@ jobs:
 
       # 6. Ejecutar migraciones de la base de datos sin prompts
       - name: Migrate Database
-        run: npx medusa db:migrate --force-sync-links
+        run: npx medusa db:migrate --execute-all-links
 
       # Opcional: Correr pruebas
       # - name: Run tests
