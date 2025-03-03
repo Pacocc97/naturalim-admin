@@ -1,5 +1,6 @@
 import type { MedusaRequest, MedusaResponse } from '@medusajs/framework/http';
 import { Modules } from '@medusajs/framework/utils';
+import { authorizePaymentSessionStep } from '@medusajs/medusa/core-flows';
 
 type ChargeAuth = {
   paymentSessionId: string;
@@ -32,16 +33,8 @@ export async function POST(
       req.body,
     );
 
-    // Validar que todos los campos requeridos estén presentes
-    // if (!tokenId || !deviceSessionId || !cartId || !amount) {
-    //   throw new Error(
-    //     'Faltan campos requeridos: tokenId, deviceSessionId, cartId, amount',
-    //   );
-    // }
-
     // Resolver el servicio de pagos
     const paymentModuleService = req.scope.resolve(Modules.PAYMENT);
-
     // Autorizar la sesión de pago utilizando los datos recibidos
     const paymentSession = await paymentModuleService.authorizePaymentSession(
       paymentSessionId, // Asegúrate de que cartId corresponde al ID de colección de pagos correcto
