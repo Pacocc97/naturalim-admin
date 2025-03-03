@@ -34,17 +34,21 @@ jobs:
       - name: Build Medusa App
         run: pnpm build
 
+      # 6. Ejecutar migraciones de la base de datos sin prompts
+      - name: Migrate Database
+        run: npx medusa db:migrate --force-sync-links
+
       # Opcional: Correr pruebas
       # - name: Run tests
       #   run: pnpm test
 
-      # 6. Añadir la llave SSH
+      # 7. Añadir la llave SSH
       - name: Add SSH key
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
-      # 7. Desplegar al servidor, excluyendo .git
+      # 8. Desplegar al servidor, excluyendo .git
       - name: Deploy to server
         run: |
           rsync -avz --delete \
