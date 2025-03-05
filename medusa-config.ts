@@ -28,9 +28,10 @@ module.exports = defineConfig({
       'server',
     redisUrl: process.env.REDIS_URL,
     http: {
-      storeCors: process.env.STORE_CORS!,
-      adminCors: process.env.ADMIN_CORS!,
-      authCors: process.env.AUTH_CORS!,
+      storeCors: process.env.STORE_CORS || 'http://localhost:8000',
+      adminCors: process.env.ADMIN_CORS || 'http://localhost:9000',
+      authCors:
+        process.env.AUTH_CORS || 'http://localhost:8000,http://localhost:9000',
       jwtSecret: process.env.JWT_SECRET || 'supersecret',
       cookieSecret: process.env.COOKIE_SECRET || 'supersecret',
       jwtExpiresIn: '4h',
