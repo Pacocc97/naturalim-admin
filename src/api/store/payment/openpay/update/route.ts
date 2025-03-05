@@ -1,6 +1,5 @@
 import { MedusaRequest, MedusaResponse } from '@medusajs/framework/http';
 import { Modules } from '@medusajs/utils';
-import OpenpayProviderService from 'src/modules/openpay/service';
 
 // Esta función asume que el body del request ya viene parseado
 export async function POST(req: MedusaRequest, res: MedusaResponse) {

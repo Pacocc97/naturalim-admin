@@ -1,6 +1,5 @@
 import { MedusaRequest, MedusaResponse } from '@medusajs/framework/http';
 import { Modules } from '@medusajs/utils';
-import OpenpayProviderService from 'src/modules/openpay/service';
 
 // Esta función asume que el body del request ya viene parseado
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
@@ -31,11 +30,13 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       // Aquí, en data probablemente tengas el session_id
       // entonces obtienes la sesión o el payment:
       const session = await openpayProvider.retrievePaymentSession(
-        data.session_id,
+        data?.session_id || '',
       );
 
       // y ahora llamas al capturePayment con session.payment.id
-      await openpayProvider.capturePayment({ payment_id: session.payment.id });
+      await openpayProvider.capturePayment({
+        payment_id: session.payment?.id || '',
+      });
     }
 
     // // Aquí podrías hacer cualquier proceso extra que necesites

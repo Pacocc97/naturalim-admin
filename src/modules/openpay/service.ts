@@ -126,7 +126,7 @@ class OpenpayProviderService extends AbstractPaymentProvider<Options> {
             amount: context.amount,
             currency: context.currency_code,
             description: context.description,
-            order_id: input.data.id,
+            order_id: input.data?.id || '',
             device_session_id: context.device_session_id,
             customer: {
               name: customer.name,
