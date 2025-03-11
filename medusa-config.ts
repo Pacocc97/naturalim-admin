@@ -29,7 +29,7 @@ module.exports = defineConfig({
     redisUrl: process.env.REDIS_URL,
     http: {
       // storeCors: process.env.STORE_CORS || 'http://localhost:8000',
-      storeCors: 'https://naturalim3.netlify.app',
+      storeCors: 'http://localhost:3000',
       adminCors: process.env.ADMIN_CORS || 'http://localhost:9000',
       authCors:
         process.env.AUTH_CORS || 'http://localhost:8000,http://localhost:9000',
