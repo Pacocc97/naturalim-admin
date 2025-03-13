@@ -34,6 +34,7 @@
     "@mikro-orm/knex": "6.4.3",
     "@mikro-orm/migrations": "6.4.3",
     "@mikro-orm/postgresql": "6.4.3",
+    "@react-email/components": "0.0.33",
     "@types/openpay": "^1.0.4",
     "awilix": "^8.0.1",
     "body-parser": "^1.20.3",
@@ -42,6 +43,7 @@
     "event-bus-redis": "link:@medusajs/medusa/event-bus-redis",
     "openpay": "^1.0.5",
     "pg": "^8.13.0",
+    "resend": "^4.1.2",
     "workflow-engine-redis": "link:@medusajs/medusa/workflow-engine-redis",
     "zod": "^3.24.2"
   },
