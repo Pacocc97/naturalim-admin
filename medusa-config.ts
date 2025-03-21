@@ -23,9 +23,11 @@ module.exports = defineConfig({
   // },
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
+    // workerMode:
+    //   (process.env.MEDUSA_WORKER_MODE as 'shared' | 'worker' | 'server') ||
+    //   'server',
     workerMode:
-      (process.env.MEDUSA_WORKER_MODE as 'shared' | 'worker' | 'server') ||
-      'server',
+      (process.env.WORKER_MODE as 'shared' | 'worker' | 'server') || 'shared',
     redisUrl: process.env.REDIS_URL,
     http: {
       // storeCors: process.env.STORE_CORS || 'http://localhost:8000',
@@ -40,7 +42,24 @@ module.exports = defineConfig({
   },
   modules: [
     {
-      resolve: '@medusajs/medusa/event-bus-local',
+      resolve: '@medusajs/medusa/fulfillment',
+      options: {
+        providers: [
+          {
+            resolve: '@medusajs/medusa/fulfillment-manual',
+            id: 'manual',
+          },
+          {
+            resolve: './src/modules/skydropx',
+            id: 'skydropx-fulfillment',
+            options: {
+              client_id: process.env.SKYDROPX_API_KEY,
+              client_secret: process.env.SKYDROPX_SECRET,
+              printing_format: 'standard',
+            },
+          },
+        ],
+      },
     },
     {
       resolve: '@medusajs/medusa/notification',
@@ -95,22 +114,6 @@ module.exports = defineConfig({
     //     },
     //   },
     // },
-    {
-      resolve: '@medusajs/medusa/payment',
-      options: {
-        providers: [
-          {
-            resolve: './src/modules/openpay',
-            options: {
-              apiKey: 'sk_09565b022fd8461698de06e6bdc2a67a',
-              merchantId: 'mzf9mmojexntfllthzal',
-              production: false,
-              capture: true,
-            },
-          },
-        ],
-      },
-    },
     {
       resolve: '@medusajs/medusa/file',
       options: {

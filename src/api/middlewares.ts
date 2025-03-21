@@ -52,8 +52,33 @@ export default defineMiddlewares({
     res: MedusaResponse,
     next: MedusaNextFunction,
   ) => {
-    res.status(400).json({
-      error: 'Something happened.',
+    // Get appropriate status code based on error type
+    let statusCode = 500;
+    if (error instanceof MedusaError) {
+      statusCode = getStatusCodeFromType(error.type);
+    }
+
+    res.status(statusCode).json({
+      error: error.message || 'An unexpected error occurred',
+      type: error instanceof MedusaError ? error.type : 'unknown_error',
     });
   },
 });
+function getStatusCodeFromType(type: string): number {
+  switch (type) {
+    case MedusaError.Types.NOT_FOUND:
+      return 404;
+    case MedusaError.Types.INVALID_DATA:
+    case MedusaError.Types.INVALID_ARGUMENT:
+      return 400;
+    case MedusaError.Types.UNAUTHORIZED:
+      return 401;
+    case MedusaError.Types.DUPLICATE_ERROR:
+    case MedusaError.Types.CONFLICT:
+      return 409;
+    case MedusaError.Types.DB_ERROR:
+    case MedusaError.Types.UNEXPECTED_STATE:
+    default:
+      return 500;
+  }
+}

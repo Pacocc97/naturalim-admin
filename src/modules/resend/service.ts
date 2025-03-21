@@ -1,4 +1,3 @@
-// src/modules/resend/service.ts
 import {
   AbstractNotificationProviderService,
   MedusaError,
@@ -10,6 +9,7 @@ import {
 } from '@medusajs/framework/types';
 import { Resend, CreateEmailOptions } from 'resend';
 import React from 'react';
+import { orderPlacedEmail } from './emails/order-placed';
 
 type ResendOptions = {
   api_key: string;
@@ -31,10 +31,9 @@ enum Templates {
   ORDER_PLACED = 'order-placed',
 }
 
-// Importaremos nuestro template en un paso posterior
 const templates: { [key in Templates]?: (props: unknown) => React.ReactNode } =
   {
-    // Se llena después (ver más abajo)
+    [Templates.ORDER_PLACED]: orderPlacedEmail,
   };
 
 class ResendNotificationProviderService extends AbstractNotificationProviderService {
@@ -45,38 +44,34 @@ class ResendNotificationProviderService extends AbstractNotificationProviderServ
 
   constructor({ logger }: InjectedDependencies, options: ResendOptions) {
     super();
-    this.logger = logger;
-    this.options = options;
     this.resendClient = new Resend(options.api_key);
+    this.options = options;
+    this.logger = logger;
   }
 
   static validateOptions(options: Record<any, any>) {
     if (!options.api_key) {
       throw new MedusaError(
         MedusaError.Types.INVALID_DATA,
-        'Option `api_key` is required.',
+        "Option `api_key` is required in the provider's options.",
       );
     }
     if (!options.from) {
       throw new MedusaError(
         MedusaError.Types.INVALID_DATA,
-        'Option `from` is required.',
+        "Option `from` is required in the provider's options.",
       );
     }
   }
 
   getTemplate(template: Templates) {
-    // Si está sobreescrito en html_templates:
     if (this.options.html_templates?.[template]) {
       return this.options.html_templates[template].content;
     }
-
-    // Si no existe en la lista:
-    const allowed = Object.keys(templates);
-    if (!allowed.includes(template)) {
+    const allowedTemplates = Object.keys(templates);
+    if (!allowedTemplates.includes(template)) {
       return null;
     }
-
     return templates[template];
   }
 
@@ -98,7 +93,9 @@ class ResendNotificationProviderService extends AbstractNotificationProviderServ
     const template = this.getTemplate(notification.template as Templates);
 
     if (!template) {
-      this.logger.error(`No se encontró el template ${notification.template}.`);
+      this.logger.error(
+        `Couldn't find an email template for ${notification.template}. The valid options are ${Object.values(Templates)}`,
+      );
       return {};
     }
 
@@ -109,18 +106,17 @@ class ResendNotificationProviderService extends AbstractNotificationProviderServ
       html: '',
     };
 
-    // Si el template es string, se manda como HTML; si es React, se pasa al prop react
     if (typeof template === 'string') {
       emailOptions.html = template;
     } else {
       emailOptions.react = template(notification.data);
-      delete emailOptions.html;
+      delete (emailOptions as { html?: string }).html;
     }
 
     const { data, error } = await this.resendClient.emails.send(emailOptions);
 
     if (error) {
-      this.logger.error('Failed to send email', error);
+      this.logger.error(`Failed to send email`, error);
       return {};
     }
 
