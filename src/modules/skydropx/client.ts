@@ -10,13 +10,6 @@ export type SkyDropxAuthOptions = {
   client_secret: string;
 };
 
-/**
- * Dependencias que inyecta Medusa en el constructor (opcional, aquí ejemplificamos logger).
- */
-type InjectedDependencies = {
-  logger: Logger;
-};
-
 export class SkyDropxClient {
   protected options: SkyDropxAuthOptions;
   protected logger: Logger;
@@ -43,6 +36,7 @@ export class SkyDropxClient {
       formData.append('grant_type', 'client_credentials');
       formData.append('client_id', this.options.client_id);
       formData.append('client_secret', this.options.client_secret);
+      formData.append('scope', 'default orders.create');
 
       const response = await fetch(`${this.baseUrl}/oauth/token`, {
         method: 'POST',
@@ -125,8 +119,6 @@ export class SkyDropxClient {
   async createQuotation(quotationPayload: any): Promise<any> {
     // Revisa que el body contenga el objeto "quotation" con la estructura que requiere la doc.
     // Por ejemplo: { "quotation": { "order_id": "...", "address_from": { ... }, etc. } }
-    console.log('Client: ', this.options.client_id);
-    console.log('Client secret: ', this.options.client_secret);
 
     console.log('Creating quotation: ' + JSON.stringify(quotationPayload));
     return this.sendRequest('/quotations', {
@@ -147,10 +139,20 @@ export class SkyDropxClient {
    * Crea una orden (opcional, si la usas)
    */
   async createOrder(orderPayload: any): Promise<any> {
+    console.log('Creating order: ' + JSON.stringify(orderPayload));
+
     return this.sendRequest('/orders', {
       method: 'POST',
       body: JSON.stringify(orderPayload),
-    });
+    })
+      .then((response) => {
+        // Aquí puedes hacer algo con la respuesta, como guardarla en tu base de datos
+        console.log('order created: ' + response);
+        return response;
+      })
+      .catch((error) => {
+        console.error('Error creating order: ' + error);
+      });
   }
 
   /**
